@@ -1,0 +1,29 @@
+on: push
+name: Build and upload artifact on push
+jobs:
+  build-and-upload-artifact:
+    name: Build and upload artifact on push
+    runs-on: windows-2019
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v3
+      with:
+        go-version: '1.18.4' # The Go version to download (if necessary) and use.
+    - run: go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo
+    - run: $Env:Path+= ";" + $Env:GOPATH + "\bin"; go generate
+    - run: go build -ldflags="-H windowsgui" -o WiFi-export-import-${{ github.sha }}-x64.exe
+    - run: $Env:GOARCH="386"; go build -ldflags="-H windowsgui" -o WiFi-export-import-${{ github.sha }}-x86.exe
+
+    - name: Upload Artifact (x64)
+      uses: actions/upload-artifact@v3
+      with:
+        name: WiFi-export-import-${{ github.sha }}-x64.exe.zip
+        path: ./WiFi-export-import-${{ github.sha }}-x64.exe
+        retention-days: 5
+  
+    - name: Upload Artifact (x86)
+      uses: actions/upload-artifact@v3
+      with:
+        name: WiFi-export-import-${{ github.sha }}-x86.exe.zip
+        path: ./WiFi-export-import-${{ github.sha }}-x86.exe
+        retention-days: 5
