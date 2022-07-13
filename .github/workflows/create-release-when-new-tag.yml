@@ -15,8 +15,8 @@ jobs:
         go-version: '1.18.4' # The Go version to download (if necessary) and use.
     - run: go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo
     - run: $Env:Path+= ";" + $Env:GOPATH + "\bin"; go generate
-    - run: go build -ldflags="-X 'main.Version=${{ github.ref }}' -H windowsgui" -o WiFi-export-import-${{ github.sha }}-x64.exe
-    - run: $Env:GOARCH="386"; go build -ldflags="-X 'main.Version=${{ github.ref }}' -H windowsgui" -o WiFi-export-import-${{ github.sha }}-x86.exe
+    - run: go build -ldflags="-X 'main.Version=${{github.ref_name}}' -H windowsgui" -o WiFi-export-import-${{github.ref_name}}-x64.exe
+    - run: $Env:GOARCH="386"; go build -ldflags="-X 'main.Version=${{github.ref_name}}' -H windowsgui" -o WiFi-export-import-${{github.ref_name}}-x86.exe
     - name: Create Release
       id: create_release
       uses: actions/create-release@latest
@@ -37,8 +37,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./WiFi-export-import-${{ github.sha }}-x64.exe
-        asset_name: WiFi-export-import-${{ github.sha }}-x64.exe
+        asset_path: ./WiFi-export-import-${{github.ref_name}}-x64.exe
+        asset_name: WiFi-export-import-${{github.ref_name}}-x64.exe
         asset_content_type: application/exe
 
     - name: Upload Release Asset (x84)
@@ -48,6 +48,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./WiFi-export-import-${{ github.sha }}-x86.exe
-        asset_name: WiFi-export-import-${{ github.sha }}-x86.exe
+        asset_path: ./WiFi-export-import-${{github.ref_name}}-x86.exe
+        asset_name: WiFi-export-import-${{github.ref_name}}-x86.exe
         asset_content_type: application/exe
