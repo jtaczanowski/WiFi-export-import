@@ -1,0 +1,53 @@
+on:
+  push:
+    tags:
+      - 'v*'
+
+name: Build nad create release when new tag
+jobs:
+  build-and-create-release:
+    name: Build and upload artifact when new tag
+    runs-on: windows-2019
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v3
+      with:
+        go-version: '1.18.4' # The Go version to download (if necessary) and use.
+    - run: go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo
+    - run: $Env:Path+= ";" + $Env:GOPATH + "\bin"; go generate
+    - run: go build -ldflags="-X 'main.Version=${{ github.ref }}' -H windowsgui" -o WiFi-export-import-${{ github.sha }}-x64.exe
+    - run: $Env:GOARCH="386"; go build -ldflags="-X 'main.Version=${{ github.ref }}' -H windowsgui" -o WiFi-export-import-${{ github.sha }}-x86.exe
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@latest
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          Automated Release by GitHub Action CI
+        draft: false
+        prerelease: true
+  
+    - name: Upload Release Asset (x64)
+      id: upload-release-asset-x64
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./WiFi-export-import-${{ github.sha }}-x64.exe
+        asset_name: WiFi-export-import-${{ github.sha }}-x64.exe
+        asset_content_type: application/exe
+
+    - name: Upload Release Asset (x84)
+      id: upload-release-asset-x86
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./WiFi-export-import-${{ github.sha }}-x86.exe
+        asset_name: WiFi-export-import-${{ github.sha }}-x86.exe
+        asset_content_type: application/exe
