@@ -28,12 +28,10 @@ func main() {
 
 // This struct represents our main window.
 type MyWindow struct {
-	wnd                  ui.WindowMain
-	btnExport            ui.Button
-	btnImportCurrentUser ui.Button
-	btnImportAllUsers    ui.Button
-	lblInfo              ui.Static
-	importForAllUsers    bool
+	wnd               ui.WindowMain
+	btnExport         ui.Button
+	btnImportAllUsers ui.Button
+	lblInfo           ui.Static
 }
 
 func (me *MyWindow) exportProfilesFunction() {
@@ -85,12 +83,7 @@ func (me *MyWindow) importProfilesFunction() {
 			stdOutAll := ""
 			errAll := ""
 			for _, filePath := range filePaths {
-				cmd := exec.Command("netsh", "wlan", "add", "profile", fmt.Sprintf("filename=%s", filePath), fmt.Sprintf("user=%s", func() string {
-					if me.importForAllUsers {
-						return "all"
-					}
-					return "current"
-				}()))
+				cmd := exec.Command("netsh", "wlan", "add", "profile", fmt.Sprintf("filename=%s", filePath), "user=all")
 				cmd.SysProcAttr = &syscall.SysProcAttr{CreationFlags: 0x08000000}
 				stdout, err := cmd.CombinedOutput()
 				if err != nil {
@@ -117,7 +110,7 @@ func NewMyWindow() *MyWindow {
 	wnd := ui.NewWindowMain(
 		ui.WindowMainOpts().
 			Title("Wifi-export-import").
-			ClientArea(win.SIZE{Cx: 220, Cy: 146}).
+			ClientArea(win.SIZE{Cx: 220, Cy: 142}).
 			IconId(2), // ID of icon resource, see resources folder
 	)
 
@@ -126,38 +119,26 @@ func NewMyWindow() *MyWindow {
 		btnExport: ui.NewButton(wnd,
 			ui.ButtonOpts().
 				Text("&Export WiFi profiles").
-				Position(win.POINT{X: 10, Y: 5}).
-				Size(win.SIZE{Cx: 200, Cy: 26}),
-		),
-		btnImportCurrentUser: ui.NewButton(wnd,
-			ui.ButtonOpts().
-				Text("&Import WiFi profiles for current user").
-				Position(win.POINT{X: 10, Y: 35}).
-				Size(win.SIZE{Cx: 200, Cy: 26}),
+				Position(win.POINT{X: 10, Y: 8}).
+				Size(win.SIZE{Cx: 200, Cy: 39}),
 		),
 		btnImportAllUsers: ui.NewButton(wnd,
 			ui.ButtonOpts().
-				Text("&Import WiFi profiles for all users").
-				Position(win.POINT{X: 10, Y: 65}).
-				Size(win.SIZE{Cx: 200, Cy: 26}),
+				Text("&Import WiFi profiles").
+				Position(win.POINT{X: 10, Y: 48}).
+				Size(win.SIZE{Cx: 200, Cy: 39}),
 		),
 		lblInfo: ui.NewStatic(wnd,
 			ui.StaticOpts().
 				Text(fmt.Sprintf("          WiFi-export-import (%s)\n          2022-%d Jan Taczanowski\n                    taczanowski.net", Version, time.Now().Year())).
-				Position(win.POINT{X: 10, Y: 95}).
+				Position(win.POINT{X: 10, Y: 91}).
 				Size(win.SIZE{Cx: 200, Cy: 62}),
 		),
 	}
 
 	me.btnExport.On().BnClicked(me.exportProfilesFunction)
 
-	me.btnImportCurrentUser.On().BnClicked(func() {
-		me.importForAllUsers = false
-		me.importProfilesFunction()
-	})
-
 	me.btnImportAllUsers.On().BnClicked(func() {
-		me.importForAllUsers = true
 		me.importProfilesFunction()
 	})
 
